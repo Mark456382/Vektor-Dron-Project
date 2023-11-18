@@ -20,25 +20,46 @@ while True:
     connectivity = 8
     num_labels_b, labels_b, stats_b, centroids_blue = cv2.connectedComponentsWithStats(mask_blue , connectivity , cv2.CV_32S)
     num_labels_r, labels_r, stats_r, centroids_red = cv2.connectedComponentsWithStats(mask_blue , connectivity , cv2.CV_32S)
+    
+    box_red_mask = Image.fromarray(mask_red)
+    box_blue_mask = Image.fromarray(mask_blue)
 
-    for i, j in zip(centroids_blue[1::2], centroids_red[1::2]):
-        xb, yb, xr1, yr1 = i[0], i[1], j[0], j[1]
-        cv2.circle(frame,(int(xb),int(yb)), 5,(0,0,255), -1) 
-        cv2.circle(frame,(int(xr1),int(yr1)), 5,(255,0,0), -1) 
-        # cv2.circle(frame,(int(xr2),int(yr2)), 5,(255,0,0), -1) 
+    box_r = box_red_mask.getbbox()
+    box_b = box_blue_mask.getbbox()
 
-    # for i in 
-    #     x, y = i[0], i[1]
-    #     cv2.circle(frame,(int(x),int(y)), 5,(255,0,0), -1) 
+    if box_r is not None:
+        cv2.drawContours(frame, contours_red, -1, (255,0,0), 3, cv2.LINE_AA, hierarchy_red, 1 )
+        
+        for i in range(len(centroids_red)-1):
+            lst = centroids_red
+            xr1, yr1, xr2, yr2 = int(lst[i][0]), int(lst[i][1]), int(lst[i+1][0]), int(lst[i+1][1])
+
+            cv2.circle(frame,(int(xr1),int(yr1)), 5,(255,0,0), -1) 
+            cv2.circle(frame,(int(xr2),int(yr2)), 5,(255,0,0), -1)
+
+            cv2.putText(frame, f'Red_1', (xr1, yr1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0 ,0))
+            cv2.putText(frame, f'Red_2', (xr2, yr2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0))
+
+            cv2.putText(frame, f'x1 - {int(xr1)} y1 - {int(yr1)}', (xr1+10, yr1+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0 ,0))
+            cv2.putText(frame, f'x2 - {int(xr2)} y2 - {int(yr2)}', (xr2+10, yr2+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0 ,0))
 
 
-    cv2.drawContours(frame, contours_blue, -1, (0,0,255), 3, cv2.LINE_AA, hierarchy_blue, 1 )
-    cv2.drawContours(frame, contours_red, -1, (255,0,0), 3, cv2.LINE_AA, hierarchy_red, 1 )
+    if box_b is not None:
+        cv2.drawContours(frame, contours_blue, -1, (0,0,255), 3, cv2.LINE_AA, hierarchy_blue, 1 )
+
+        for i in centroids_blue[1::2]:
+            xb, yb = int(i[0]), int(i[1])
+            cv2.circle(frame,(xb,yb), 5,(0,0,255), -1) 
+
+            cv2.putText(frame, f'Blue', (xb, yb), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0 ,255))
+            cv2.putText(frame, f'x - {xb} y - {yb}', (xb+10, yb+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0 ,255))
 
 
     if ret:
         cv2.imshow('vid', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+            break
+
+
 cap.release()
 cv2.destroyAllWindows()
