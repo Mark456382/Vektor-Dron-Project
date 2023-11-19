@@ -1,86 +1,81 @@
+# --> Imports
 import cv2
-import logging 
 import numpy as np
-from PIL import Image
 
 
-cap = cv2.VideoCapture(r'Tasks\Task3\IMG_0298.MP4')
-
-
-def task_3():
-    center_blue_x, center_blue_y = 0, 0
-    center_red_x1, center_red_y1 = 0, 0
-    center_red_x2, center_red_y2 = 0, 0
-
-    try:
-        while True:
-            ret, frame = cap.read()
-            # Создание масок цветов
-
-            imgHSV = cv2.cvtColor(frame,cv2.COLOR_BGR2HSV)
-
-            mask_blue = cv2.inRange(imgHSV,np.array([94,45,0]),np.array([160,255,255]))
-            mask_red  = cv2.inRange(imgHSV,np.array([0, 220, 94]),np.array([255, 255, 255]))
-            
-            # Наложение маски
-            box_red_mask = Image.fromarray(mask_red)
-            box_blue_mask = Image.fromarray(mask_blue)
-
-            # Поиск координат для Box'а
-            box_r = box_red_mask.getbbox()
-            box_r1 = box_red_mask.getbbox()
-            box_b = box_blue_mask.getbbox()
-
-            # поиск координат центра наждого обьекта
-            connectivity = 8
-            num_labels_b, labels_b, stats_b, centroids_blue = cv2.connectedComponentsWithStats(mask_blue , connectivity , cv2.CV_32S)
-            num_labels_r, labels_r, stats_r, centroids_red = cv2.connectedComponentsWithStats(mask_red , connectivity , cv2.CV_32S)
-
-            #Отрисовывание Box'a для каждого цвета на фото
-            if box_r is not None:
-                x1, y1, x2, y2 = box_r
-                frame = cv2.rectangle(frame, (x1,y1), (x2,y2), (255, 0, 255), 5)
-                cv2.putText(frame, f'Red', (x2, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0 ,255))
-                cv2.putText(frame, f'x1 - {int((x1+x2)/2)} y - {int((y1+y2)/2)}', (x2, y1+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0 ,255))
-                print(f'---{centroids_red}---')
-
-            if box_b is not None:
-                x1, y1, x2, y2 = box_b
-                frame = cv2.rectangle(frame, (x1,y1), (x2,y2), (0, 255, 255), 5)
-                cv2.putText(frame, 'Blue', (x2, y1), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0 ,0))
-                cv2.putText(frame, f'x - {int((x1+x2)/2)} y - {int((y1+y2)/2)}', (x2, y1+10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0 ,0))
-
-
-            if ret:
-                cv2.imshow('Video', frame)
-                center_blue_x, center_blue_y = int(centroids_blue[0][0]), int(centroids_blue[0][1])
-                center_red_x1, center_red_y1 = int(centroids_red[0][0]), int(centroids_red[0][1])
-                # center_red_x2, center_red_y2 = int(centroids_red[1][0]), int(centroids_red[1][1])
-                # with cv2.VideoWriter_fourcc(*'XVID') as fourcc:
-                #     out = cv2.VideoWriter('output.avi', fourcc, 20.0, (640,480))
-                
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-            else:
-                break
-    except BaseException as e:
-        return [[center_blue_x, center_blue_y], [[center_red_x1, center_red_y1], [center_red_x2, center_red_y2]]]
+class DetectBox:
+    """Определение объектов на фото/видео"""
     
-    cap.release()
-    cv2.destroyAllWindows()
+    def __init__(self):
+        self.cap = cv2.VideoCapture(r'Tasks/Task3/IMG_0298.MP4')
+        self.out = cv2.VideoWriter('Tasks/Task3/output.mp4', -1, 30, (1280, 720))
+
+
+    @staticmethod
+    def draw(frame, contours: np.array, color: str) -> None:
+        """Функция для отрисовывания объекта и его координат"""
+        # перебираем все найденные контуры в цикле
+        for cnt in contours:
+            rect = cv2.minAreaRect(cnt)  # пытаемся вписать прямоугольник
+            box = cv2.boxPoints(rect)  # поиск четырех вершин прямоугольника
+            box = np.int0(box)  # округление координат
+
+            area = int(rect[1][0] * rect[1][1])  # вычисление площади
+            # не продолжаем расчет для маленьких площадей (информационный мусор)
+            if area < 10000:
+                continue
+
+            sum_x = 0.0
+            sum_y = 0.0
+            for point in box:
+                x = float(point[0])
+                y = float(point[1])
+                sum_x += x
+                sum_y += y
+            xc = int(sum_x / float(len(box)))
+            yc = int(sum_y / float(len(box)))
+
+            cv2.drawContours(frame, [box], 0, (0, 255, 0), 2)  # рисуем прямоугольник
+
+            # не отрисовываем для маленьких площадей
+            if area > 25000:
+                cv2.circle(frame, (xc, yc), 5, (0, 255, 0), -1)
+                cv2.putText(frame, color, (xc + 10, yc + 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+                cv2.putText(frame, f'x - {int((xc + 30) / 2)} y - {int((yc + 30) / 2)}', (xc, yc + 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0))
+
+
+    def execute(self) -> None:
+        """Основная исполнительная функция"""
+        try:
+            while True:
+                ret, frame = self.cap.read() # Чтение видео
+
+                imgHSV = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV) # Перевод в цветовой спектр HSV
+
+                # Маски цветов
+                mask_blue = cv2.inRange(imgHSV, np.array([94, 45, 0]), np.array([160, 255, 255]))
+                mask_red = cv2.inRange(imgHSV, np.array([0, 220, 94]), np.array([255, 255, 255]))
+
+                # Поиск контуров
+                contours_blue, _ = cv2.findContours(mask_blue, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+                contours_red, _ = cv2.findContours(mask_red, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+                self.draw(frame, contours_blue, 'Blue')
+                self.draw(frame, contours_red, 'Red')
+
+                # Если видео открыто, то отображаем его и записываем кадры
+                if ret:
+                    cv2.imshow('vid', frame) # Сохранение нового фото
+                    self.out.write(frame)
+                    if cv2.waitKey(1) & 0xFF == ord('q'):
+                        break
+        except BaseException:
+            self.cap.release()
+            self.out.release()
+            cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
-    info = task_3()
-    print(f'''
-        Object
-        =============================================
-        Blue:   x - {info[0][0]} 
-                y - {info[0][1]}
-        ---------------------------------------------
-        Red:    x1 - {info[1][0][0]}
-                y1 - {info[1][0][1]}
-
-                x2 - {info[1][1][0]}
-                y2 - {info[1][1][1]}
-        ''')
+    detect_box = DetectBox()
+    detect_box.execute()

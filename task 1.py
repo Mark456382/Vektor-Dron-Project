@@ -3,9 +3,18 @@ from PIL import Image
 
 
 # Словарь изображений
-images = {1: r'Tasks\Task1\blue.png', 
-        2: r'Tasks\Task1\green.png', 
-        3: r'Tasks\Task1\red.png'}
+images = {}
+
+# Внесение элементов в словарь изображений 
+n = 0
+while True:
+    n+=1
+    name = input("Введите пути до фото через Enter. После окончания ввода введите 'break'")
+    if name == 'break':
+        break 
+    else:
+        images[n] = name 
+
 
 # Словарь цветов
 colors = {'Blue': (0, 0, 255, 255),
@@ -13,15 +22,15 @@ colors = {'Blue': (0, 0, 255, 255),
         'Red': (255, 0, 0, 255)}
 
 
-def get_key(d, value):
+def get_key(d: dict[str], value: int) -> None:
     """Получение ключа в словаре по значению"""
     for k, v in d.items():
         if v == value:
             return k
 
 
-def task_1():
-    # Перебор и сообтношение цветов пикселей с цветами в словаре
+def task_1() -> None:
+    """Перебор и сообтношение цветов пикселей с цветами в словаре"""
     for num, image in images.items():
         with Image.open(image) as img:
             img.load()
