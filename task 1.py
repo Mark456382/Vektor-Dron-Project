@@ -2,14 +2,16 @@
 from PIL import Image
 
 
-# Словарь изображений
+# --> Словарь изображений
 images = {}
 
 # Внесение элементов в словарь изображений 
 n = 0
+print("Введите пути до фото через Enter. После окончания ввода введите 'break'\n")
+
 while True:
     n+=1
-    name = input("Введите пути до фото через Enter. После окончания ввода введите 'break'")
+    name = input()
     if name == 'break':
         break 
     else:
@@ -17,9 +19,9 @@ while True:
 
 
 # Словарь цветов
-colors = {'Blue': (0, 0, 255, 255),
-        'Green': (0, 255, 0, 255),
-        'Red': (255, 0, 0, 255)}
+colors = {'B': (0, 0, 255, 255),
+        'G': (0, 255, 0, 255),
+        'R': (255, 0, 0, 255)}
 
 
 def get_key(d: dict[str], value: int) -> None:
@@ -35,7 +37,7 @@ def task_1() -> None:
         with Image.open(image) as img:
             img.load()
             color = img.getpixel((5, 5))
-            print(f'{num} --- {get_key(colors, color)}')
+            print(get_key(colors, color), end=' ')
 
 
 if __name__ == '__main__':
