@@ -1,3 +1,4 @@
+# --> Imports
 import numpy as np
 import keras.losses
 import keras.datasets.mnist
@@ -6,10 +7,12 @@ import keras.optimizers
 from keras import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense
 
+
 num_classes = 10 # Количество объектов для классификации
 input_file = (28, 28, 1) # Размерность данных
 
-# Преобразование и переработка данных mnist, так как приложенный к заданию датасет не разбит по классам и неудобен для обучения нейронной сети
+# Преобразование и переработка данных mnist, так как приложенный
+#  к заданию датасет не разбит по классам и неудобен для обучения нейронной сети
 
 (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
 x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
@@ -26,9 +29,9 @@ x_train = x_train.astype("float32") / 255
 x_test = x_test.astype("float32") / 255
 
 
-# Структура нейронной сети
-
 def gen_model():
+    """Структура нейронной сети"""
+
     model = Sequential()
     model.add(Conv2D(32, kernel_size=(3, 3),activation='relu',input_shape=input_file))
     model.add(Conv2D(64, (3, 3), activation='relu'))
