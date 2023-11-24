@@ -1,8 +1,7 @@
-import cv2
+import tensorflow as tf
 import numpy as np
-from keras.models import load_model
 
-model = load_model(str(input('Введите путь до обученной модели => ')))
+model = tf.keras.models.load_model(str(input('Введите путь до обученной модели => ')))
 
 answer = ''
 
@@ -11,13 +10,13 @@ while True:
     if path == '':
         break
     # Загрузка изображений и их трансформация для поддержки нейронной сетью
-    image = cv2.imread(path, 0)
-    image = np.array(image)
+    image = tf.keras.preprocessing.image.load_img(path, target_size=(28, 28), color_mode='grayscale')
+    image = np.expand_dims(image, axis=0)
+    image = 1 - image/255.0
     image = image.reshape(1, 28, 28, 1)
-    image = image / 255.0
     # Определение цифры на изображении
     prediction = model.predict([image])[0]
-    print(np.argmax(prediction), max(prediction))
+    print(np.argmax(prediction), max(prediction)*100, '%')
     answer+=str(np.argmax(prediction))
 
 print(answer)

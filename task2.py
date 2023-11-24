@@ -59,11 +59,11 @@ class DetectBox:
         self.draw(self.img, contours_blue, 'Blue')
         self.draw(self.img, contours_red, 'Red')
 
-        cv2.imwrite('Tasks/Task2/new.png', self.img) # Сохранение нового фото
+        cv2.imwrite('Tasks/Task_2/new.png', self.img) # Сохранение нового фото
         cv2.imshow('img', self.img)
         cv2.waitKey(0)
 
 
 if __name__ == '__main__':
-    detect_box = DetectBox(r"Tasks/Task2/_IMG_0296.JPG")
+    detect_box = DetectBox(r"Tasks\Task_2\tello-image.JPG")
     detect_box.execute() 

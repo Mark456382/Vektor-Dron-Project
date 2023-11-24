@@ -7,8 +7,8 @@ class DetectBox:
     """Определение объектов на фото/видео"""
     
     def __init__(self):
-        self.cap = cv2.VideoCapture(r'Tasks/Task3/IMG_0298.MP4')
-        self.out = cv2.VideoWriter('Tasks/Task3/output.mp4', -1, 30, (1280, 720))
+        self.cap = cv2.VideoCapture(r'Tasks\Task_3\tello-video.MP4')
+        self.out = cv2.VideoWriter('Tasks/Task_3/output.mp4', -1, 30, (1280, 720))
 
 
     @staticmethod
