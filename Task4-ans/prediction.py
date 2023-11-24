@@ -19,4 +19,4 @@ while True:
     print(np.argmax(prediction), max(prediction)*100, '%')
     answer+=str(np.argmax(prediction))
 
-print(answer)
+print("Ответ -", answer)
